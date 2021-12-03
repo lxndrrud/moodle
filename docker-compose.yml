@@ -1,0 +1,66 @@
+version: '3'
+services:
+  db:
+    container_name: db
+    image: mysql
+    restart: always
+    environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: moodle
+        MYSQL_USER: user
+        MYSQL_PASSWORD: password
+    ports:
+        - "9906:3306"
+    networks:
+      - moodle_network
+
+  pma:
+    container_name: pma
+    image: phpmyadmin/phpmyadmin
+    ports:
+        - '8080:80'
+    restart: always
+    depends_on:
+        - db
+    networks: 
+      - moodle_network
+    
+  moodle:
+    container_name: moodle
+    build: 
+      context: ./moodle/
+      dockerfile: Dockerfile
+    ports:
+      - '8000:80'
+    volumes: 
+      - ./moodle:/var/www/html/moodle
+    depends_on:
+      - db
+    links:
+      - db
+    networks:
+      - moodle_network
+
+  #apache: 
+    #image: httpd:2.4-alpine
+    #container_name: apache
+    #restart: unless-stopped
+    #depends_on:
+    #    - db
+    #    - moodle
+   #    - pma
+    #ports:
+    #    - '8081:8081'
+    #links:
+        #- db
+       # - moodle
+       # - pma
+   # networks:
+   #     - moodle_network
+   # volumes:
+   #     - ./apache/:/apache/
+   #     - ./storage/:/var/storage/
+
+networks: 
+  moodle_network:
+    external: false
