@@ -31,8 +31,13 @@ if ($formdata = $form->get_data()) {
             echo('<br>');
         }
         */
-        tool_registeruser_controller::process_data($content);
-        redirect($returnurl);
+        $array_info = tool_registeruser_controller::process_data($content);
+        $message_to_show = 
+            '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
+            '<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>';
+        #echo('<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>');
+        #echo('<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>');
+        redirect($returnurl, $message_to_show);
     }
     /*
     if (!$content) {

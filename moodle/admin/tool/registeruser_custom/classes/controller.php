@@ -389,5 +389,9 @@ class tool_registeruser_controller {
             }
             $counter++;
         }
+        return array(
+            'successful' => $successful,
+            'errors' => $errors
+        );
     }
 }
