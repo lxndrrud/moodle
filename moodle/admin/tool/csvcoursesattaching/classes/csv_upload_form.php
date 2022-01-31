@@ -29,10 +29,13 @@ class csv_upload_form extends tool_uploadcourse_base_form {
 
         $mform->addElement('header', 'generalhdr', get_string('general'));
 
-        $mform->addElement('filepicker', 'coursefile', get_string('coursefile', 'tool_registeruser_custom'));
+        $mform->addElement('filepicker', 'coursefile', get_string('coursefile', 'tool_csvcoursesattaching'));
         $mform->addRule('coursefile', null, 'required');
-        $mform->addHelpButton('coursefile', 'coursefile', 'tool_registeruser_custom');
+        $mform->addElement(null, 'help-column', get_string('help-column', 'tool_csvcoursesattaching'));
+        $mform->addElement(null, 'help-row', get_string('help-row', 'tool_csvcoursesattaching'));
+        $mform->addElement(null, 'help-encoding', get_string('help-encoding', 'tool_csvcoursesattaching'));
+        $mform->addHelpButton('coursefile', 'coursefile', 'tool_csvcoursesattaching');
 
-        $this->add_action_buttons(false, get_string('upload', 'tool_registeruser_custom'));
+        $this->add_action_buttons(false, get_string('upload', 'tool_csvcoursesattaching'));
     }
 }
