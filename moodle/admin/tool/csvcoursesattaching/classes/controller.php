@@ -260,7 +260,7 @@ class tool_csvcoursesattaching_controller {
     */
     public static function unregister_student(int $user_id, int $category_id) {
         global $DB;
-        $roleid = tool_csvcoursesattaching_controller::normalize_role(('student'));
+        $roleid = tool_csvcoursesattaching_controller::normalize_role('student');
         $category = $DB->get_record('course_categories', array('id' => $category_id));
         // courses for category
         $courses = $DB->get_records('course', array('category' => $category_id));
@@ -374,14 +374,15 @@ class tool_csvcoursesattaching_controller {
             $row_array = preg_split('/@/', $row);
 
             // Fields from CSV
-            $firstname = $row_array[0];
-            $lastname = $row_array[1];
-            $username = $row_array[2];
-            $group_name = $row_array[3];
-            $type = $row_array[4];
-            $course_fullname = $row_array[5];
-            $course_shortname = $row_array[6];
-            $category_id = $row_array[7];
+            $firstname = $row_array[0]; // Имя, чтоб найти пользователя по имени, может быть не указано
+            $lastname = $row_array[1]; // Фамилия, чтоб найти пользователя по имени, может быть не указано
+            $username = $row_array[2]; // Логин, чтоб найти пользователя по логину
+            $group_name = $row_array[3]; // Название группы, чтоб найти группу по названию
+            $member_type = $row_array[4]; // Тип прикрепления (преподаватель или группа или студент)
+            $course_fullname = $row_array[5]; // Полное название курса
+            $course_shortname = $row_array[6]; // Краткое название курса
+            $category_id = $row_array[7]; // Идентификатор категории курсов (одна категория на специальность вроде)
+            $action_type = $row_array[8]; // Тип действия: + для прикрепления, - для открепления 
 
             $course_id = 0;
             if ($course_shortname != '')
@@ -391,39 +392,78 @@ class tool_csvcoursesattaching_controller {
             
             
             try {
-                if(count($row_array) != 8) throw new Exception('Ошибка с парсингом CSV.');
+                // В строке должно быть 9 колонок
+                if(count($row_array) != 9) throw new Exception('Ошибка с парсингом CSV.');
 
-                // Type for teacher in russian
-                if ($type == 'П') {
-                    $user = tool_csvcoursesattaching_controller::get_user_by_info($firstname, $lastname, $username);
-                    if ($user && ($course_id != 0 || $course_id != null))
-                        tool_csvcoursesattaching_controller::register_teacher(
-                            $user -> id, 
-                            $course_id
-                        );
-                    else  throw new Exception('Аргументы не найдены');
+                // Прикрепление
+                if ($action_type === "+") {
+                    // Преподаватель
+                    if ($member_type == 'П') {
+                        $user = tool_csvcoursesattaching_controller::get_user_by_info($firstname, $lastname, $username);
+                        if ($user && ($course_id != 0 || $course_id != null))
+                            tool_csvcoursesattaching_controller::register_teacher(
+                                $user -> id, 
+                                $course_id
+                            );
+                        else  throw new Exception('Аргументы не найдены');
+                    }
+
+                    // Студент
+                    if ($member_type == 'С') {
+                        $user = tool_csvcoursesattaching_controller::get_user_by_info($firstname, $lastname, $username);
+                        if ($user && $category_id)
+                            tool_csvcoursesattaching_controller::register_student(
+                                $user -> id, 
+                                $category_id
+                            );
+                        else  throw new Exception('Аргументы не найдены');
+                    }
+
+                    // Группа
+                    if ($member_type == 'Г') {
+                        $group = tool_csvcoursesattaching_controller::get_group_by_info($group_name);
+                        if ($group && $category_id)
+                            tool_csvcoursesattaching_controller::register_group(
+                                $group -> id,
+                                $category_id
+                            );
+                        else  throw new Exception('Аргументы не найдены');
+                    }
                 }
+                // Открепление
+                else if ($action_type === "-") {
+                    // Преподаватель
+                    if ($member_type == 'П') {
+                        $user = tool_csvcoursesattaching_controller::get_user_by_info($firstname, $lastname, $username);
+                        if ($user && ($course_id != 0 || $course_id != null))
+                            tool_csvcoursesattaching_controller::unregister_teacher(
+                                $user -> id, 
+                                $course_id
+                            );
+                        else  throw new Exception('Аргументы не найдены');
+                    }
 
-                // Type for student in russian
-                if ($type == 'С') {
-                    $user = tool_csvcoursesattaching_controller::get_user_by_info($firstname, $lastname, $username);
-                    if ($user && $category_id)
-                        tool_csvcoursesattaching_controller::register_student(
-                            $user -> id, 
-                            $category_id
-                        );
-                    else  throw new Exception('Аргументы не найдены');
-                }
+                    // Студент
+                    if ($member_type == 'С') {
+                        $user = tool_csvcoursesattaching_controller::get_user_by_info($firstname, $lastname, $username);
+                        if ($user && $category_id)
+                            tool_csvcoursesattaching_controller::unregister_student(
+                                $user -> id, 
+                                $category_id
+                            );
+                        else  throw new Exception('Аргументы не найдены');
+                    }
 
-                // Type for group in russian
-                if ($type == 'Г') {
-                    $group = tool_csvcoursesattaching_controller::get_group_by_info($group_name);
-                    if ($group && $category_id)
-                        tool_csvcoursesattaching_controller::register_group(
-                            $group -> id,
-                            $category_id
-                        );
-                    else  throw new Exception('Аргументы не найдены');
+                    // Группа
+                    if ($member_type == 'Г') {
+                        $group = tool_csvcoursesattaching_controller::get_group_by_info($group_name);
+                        if ($group && $category_id)
+                            tool_csvcoursesattaching_controller::unregister_group(
+                                $group -> id,
+                                $category_id
+                            );
+                        else  throw new Exception('Аргументы не найдены');
+                    }
                 }
 
                 $successful++;
