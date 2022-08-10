@@ -477,7 +477,9 @@ class tool_csvcoursesattaching_controller {
                     "; Краткое название курса: " . $course_shortname .
                     "; Логин: " . $username . 
                     "; Имя: " . $firstname . 
-                    "; Фамилия: " . $lastname
+                    "; Фамилия: " . $lastname . 
+                    "; Группа: " . $group_name . 
+                    "; Действие: " . $action_type
                  );
                 echo("</p>");
                 tool_csvcoursesattaching_controller::$is_error = True;
