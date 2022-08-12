@@ -1,14 +1,14 @@
 <?php
 /**
- * Link to CSV course upload.
+ * Link to CSV disciplines upload.
  *
- * @package    tool_csvcoursesattaching
+ * @package    tool_csvdisciplinesattaching
  * @copyright  2021 lxndrrud
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $ADMIN->add('courses', new admin_externalpage('toolcsvcoursesattaching',
-        get_string('csvcoursesattaching', 'tool_csvcoursesattaching'), "$CFG->wwwroot/$CFG->admin/tool/csvcoursesattaching/index.php"));
+    $ADMIN->add('courses', new admin_externalpage('toolcsvdisciplinesattaching',
+        get_string('csvdisciplinesattaching', 'tool_csvdisciplinesattaching'), "$CFG->wwwroot/$CFG->admin/tool/csvdisciplinesattaching/index.php"));
 }

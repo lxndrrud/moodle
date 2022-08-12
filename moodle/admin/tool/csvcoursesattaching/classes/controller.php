@@ -467,22 +467,27 @@ class tool_csvcoursesattaching_controller {
                 }
 
                 $successful++;
+                
             } catch (Exception $e) {
                 $errors++;
-                echo("<p>");
-                echo(
-                    "Ошибка в строке номер: " . $counter .
-                    "; Номер категории: " . $category_id .
-                    "; Полное название курса: " . $course_fullname .
-                    "; Краткое название курса: " . $course_shortname .
-                    "; Логин: " . $username . 
-                    "; Имя: " . $firstname . 
-                    "; Фамилия: " . $lastname . 
-                    "; Группа: " . $group_name . 
-                    "; Действие: " . $action_type
-                 );
-                echo("</p>");
+                echo("<p>" . '<strong style="color:red">Ошибка в строке</strong>: ' . $counter ."</p>");
                 tool_csvcoursesattaching_controller::$is_error = True;
+            } finally {
+                // Отобразить пропаршенные данные для пользователя в любом случае
+                echo(
+                    "<p>" .
+                    "<strong>Строка</strong>: " . $counter .
+                    "; <strong>Имя</strong>: " . $firstname . 
+                    "; <strong>Фамилия</strong>: " . $lastname . 
+                    "; <strong>Логин</strong>: " . $username . 
+                    "; <strong>Группа</strong>: " . $group_name . 
+                    "; <strong>Тип</strong>: " . $member_type .
+                    "; <strong>Полное название курса</strong>: " . $course_fullname .
+                    "; <strong>Краткое название курса</strong>: " . $course_shortname .
+                    "; <strong>Номер категории</strong>: " . $category_id .
+                    "; <strong>Действие</strong>: " . $action_type .
+                    "</p>"
+                );
             }
             $counter++;
         }

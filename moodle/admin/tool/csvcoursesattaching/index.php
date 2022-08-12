@@ -32,11 +32,23 @@ if ($formdata = $form->get_data()) {
         }
         */
         $array_info = tool_csvcoursesattaching_controller::process_data($content);
+        $message_to_show = 
+            '<div style="margin-top: 40px">' .
+            '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
+            '<h2>' . 'Ошибочных строк во время обработки:' .$array_info['errors'] .'</h2>' . 
+            '<h2>' . "Успешно обработанные строки занесены в базу данных." .'</h2>' .
+            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." .'</h2>' .
+            '</div>';
+        echo($message_to_show);
+        /*
         if(tool_csvcoursesattaching_controller::$is_error == False) {
             $message_to_show = 
             '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
-            '<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>';
-            redirect($returnurl, $message_to_show);
+            '<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>' . 
+            '<h2>' . "Успешно обработанные строки занесены в базу данных." .'</h2>' .
+            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." .'</h2>';
+            echo($message_to_show);
+            //redirect($returnurl, $message_to_show);
 
         }
         else{
@@ -48,6 +60,7 @@ if ($formdata = $form->get_data()) {
             echo($message_to_show);
             tool_csvcoursesattaching_controller::$is_error = False;
         }
+        */
         
         #echo('<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>');
         #echo('<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>');
