@@ -3,7 +3,7 @@
  * Link to CSV disciplines upload.
  *
  * @package    tool_csvdisciplinesattaching
- * @copyright  2021 lxndrrud
+ * @copyright  2022 lxndrrud
  */
 
 defined('MOODLE_INTERNAL') || die();

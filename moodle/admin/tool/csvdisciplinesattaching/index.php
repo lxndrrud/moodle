@@ -4,7 +4,7 @@
 require_once(__DIR__ . '../../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-require_once(__DIR__ . '/classes/controller.php');
+require_once(__DIR__ . '/classes/CoursesController.php');
 require_once(__DIR__ . '/classes/csv_upload_form.php');
 require_once(__DIR__ . '/classes/csv_processor.php');
 
@@ -31,23 +31,16 @@ if ($formdata = $form->get_data()) {
             echo('<br>');
         }
         */
-        $array_info = tool_csvdisciplinesattaching_controller::process_data($content);
-        if(tool_csvdisciplinesattaching_controller::$is_error == False) {
-            $message_to_show = 
+        $controller = new tool_csvdisciplinesattaching_controller();
+        $array_info = tool_csvcoursesattaching_controller::process_data($content);
+        $message_to_show = 
+            '<div style="margin-top: 40px">' .
             '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
-            '<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>';
-            redirect($returnurl, $message_to_show);
-
-        }
-        else{
-            $message_to_show = 
-            '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
-            '<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>' .
+            '<h2>' . 'Ошибочных строк во время обработки:' .$array_info['errors'] .'</h2>' . 
             '<h2>' . "Успешно обработанные строки занесены в базу данных." .'</h2>' .
-            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." .'</h2>';
-            echo($message_to_show);
-            tool_csvdisciplinesattaching_controller::$is_error = False;
-        }
+            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." .'</h2>' .
+            '</div>';
+        echo($message_to_show);
         
         #echo('<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>');
         #echo('<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>');

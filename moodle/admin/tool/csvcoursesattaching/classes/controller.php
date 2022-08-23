@@ -64,6 +64,46 @@ class tool_csvcoursesattaching_controller {
 
         return $course;
     }
+
+    /*
+    Find category by it`s short name
+    */
+    public static function get_category_by_short_name(string $category_short_name) {
+        global $DB;
+
+        $category = $DB -> get_record('course_categories', array(
+            'idnumber' => $category_short_name
+        ));
+
+        return $category;
+    }
+
+    /*
+    Find category by id
+    */
+    public static function get_category_by_id(string $category_id) {
+        global $DB;
+
+        $category = $DB -> get_record('course_categories', array(
+            'id' => $category_id
+        ));
+
+        return $category;
+    }
+
+
+    /*
+    Find courses by category
+    */
+    public static function get_courses_by_category(int $category_id) {
+        global $DB;
+
+        $courses = $DB->get_records('course', array(
+            'category' => $category_id
+        ));
+
+        return $courses;
+    }
     
     /*
     Register teacher on single course
