@@ -81,7 +81,7 @@ class tool_csvcoursesattaching_controller {
     /*
     Find category by id
     */
-    public static function get_category_by_id(string $category_id) {
+    public static function get_category_by_id(int $category_id) {
         global $DB;
 
         $category = $DB -> get_record('course_categories', array(

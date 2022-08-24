@@ -4,10 +4,9 @@
 require_once(__DIR__ . '../../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-require_once(__DIR__ . '/classes/CoursesController.php');
+require_once(__DIR__ . '/classes/courses_controller.php');
 require_once(__DIR__ . '/classes/csv_upload_form.php');
 require_once(__DIR__ . '/classes/csv_processor.php');
-
 
 
 $returnurl = new moodle_url('/admin/tool/csvdisciplinesattaching/index.php');
@@ -31,8 +30,8 @@ if ($formdata = $form->get_data()) {
             echo('<br>');
         }
         */
-        $controller = new tool_csvdisciplinesattaching_controller();
-        $array_info = tool_csvcoursesattaching_controller::process_data($content);
+        $controller = new CoursesController();
+        $array_info = $controller->process_csv_content($content);
         $message_to_show = 
             '<div style="margin-top: 40px">' .
             '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
@@ -60,7 +59,6 @@ if ($formdata = $form->get_data()) {
     echo $OUTPUT->footer();
     die();
 }
-
 
 /*
 
