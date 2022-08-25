@@ -237,13 +237,14 @@ class tool_csvcoursesattaching_controller {
             'instanceid' => $category->id, 
             'contextlevel' => 40
         ));
+
         
         $role_assignment_check = $DB->get_record('role_assignments', array(
             'roleid' => $roleid,
             'userid' => $user_id,
             'contextid' => $context->id
         ));
-        
+
         // Check existing role assignment row to update or to insert if it doesn`t exist
         if($role_assignment_check == null) {
             $DB->insert_record('role_assignments', array(

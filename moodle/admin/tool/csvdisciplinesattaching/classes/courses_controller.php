@@ -4,26 +4,6 @@ require_once(__DIR__ . '/../../csvcoursesattaching/classes/controller.php');
 
 
 class CoursesController {
-    private function attach_user_to_course(string $login,  string $role, int $course_id, int $category_id) {
-        global $DB;
-        $user = tool_csvcoursesattaching_controller::get_user_by_info("", "", $login);
-        if (!$user)
-            throw new Exception("Пользователь не найден: " . $login );
-
-        $normalized_role = tool_csvcoursesattaching_controller::normalize_role($role);
-        if (!$normalized_role) 
-            throw new Exception("Роль не может быть нормализована: " . $role);
-
-        if ($role === 'teacher') {
-            if ($course_id === 0) throw new Exception("Идентификатор категории равен нулю!");
-            tool_csvcoursesattaching_controller::register_teacher($user->id, $course_id);
-        }
-        else if ($role === 'student') {
-            if ($category_id === 0) throw new Exception("Идентификатор категории равен нулю!");
-            tool_csvcoursesattaching_controller::register_student($user->id, $category_id);
-        }
-    }
-
     private function get_role_assignments_for_category($category) {
         global $DB;
         // Получение дисциплин на категорию
@@ -71,15 +51,9 @@ class CoursesController {
         );
     }
 
-    private function delete_users_from_category($category) {
+    private function delete_students_from_courses($courses, $students_role_assignments_array) {
         global $DB;
-        
-        // Получить дисциплины на категорию
-        $courses = tool_csvcoursesattaching_controller::get_courses_by_category($category->id);
-        // Получить подписи пользователей на дисциплину 
-        $role_assignments = $this->get_role_assignments_for_category($category);
-        // отвязать студентов от всех дисциплин в категории
-        foreach($role_assignments['students'] as $student_assignment) {
+        foreach($students_role_assignments_array as $student_assignment) {
             $DB->delete_records('role_assignments', array(
                 'id' => $student_assignment->id,
             ));
@@ -94,9 +68,13 @@ class CoursesController {
                 ));
             }
         }
+    }
+
+    private function delete_teachers_from_courses($teachers_role_assignments_array) {
+        global $DB;
         // Отвязать учителей от их дисциплин в категории
-        foreach($role_assignments['teachers'] as $teachers_assignments) {
-            // Учителия на одну дисциплину
+        foreach($teachers_role_assignments_array as $teachers_assignments) {
+            // Учителя на одну дисциплину
             foreach($teachers_assignments['assignments'] as $teacher_assignment) {
                 $DB->delete_records('role_assignments', array(
                     'id' => $teacher_assignment->id,
@@ -113,6 +91,20 @@ class CoursesController {
         }
     }
 
+
+    private function delete_users_from_category($category, bool $delete_users_flag) {
+        // Получить дисциплины на категорию
+        $courses = tool_csvcoursesattaching_controller::get_courses_by_category($category->id);
+        // Получить подписи пользователей на дисциплину 
+        $role_assignments = $this->get_role_assignments_for_category($category);
+        // Отвязать студентов от всех дисциплин в категории
+        if ($delete_users_flag) {
+            $this->delete_students_from_courses($courses, $role_assignments['students']);
+        }
+        // Отвязать учителей от их дисциплин в категории
+        $this->delete_teachers_from_courses($role_assignments['teachers']);
+    }
+
     private function create_course_in_category(int $category_id, string $course_full_name, string $course_short_name) {
         global $DB;
 
@@ -121,8 +113,75 @@ class CoursesController {
             "fullname" => $course_full_name,
             "shortname" => $course_short_name,
             "startdate" => strtotime("now"),
-            "enddate" => strtotime("+1 year")
+            "enddate" => strtotime("+1 year"),
+            "timecreated" => strtotime("now"),
+            "timemodified" => strtotime("now"),
+            "summary" => "",
+            "summaryformat" => 1,
+            "showactivitydates" => 1,
+            "showcompletionconditions" => 1,
+            "enablecompletion" => 1
         ));
+
+        $course = $DB->get_record("course", array(
+            "category" => $category_id, 
+            "fullname" => $course_full_name,
+            "shortname" => $course_short_name,
+        ));
+
+        // Manual enrol
+        $DB->insert_record('enrol', array(
+            "enrol" => "manual",
+            "status" => 0,
+            "courseid" => $course->id,
+            "expirythreshold" => 86400,
+            "roleid" => 5,
+            "timecreated" => strtotime("now"),
+            "timemodified" => strtotime("now"),
+        ));
+
+        // Guest enrol
+        $DB->insert_record('enrol', array(
+            "enrol" => "guest",
+            "status" => 1,
+            "courseid" => $course->id,
+            "expirythreshold" => 0,
+            'password' => "",
+            "roleid" => 0,
+            "timecreated" => strtotime("now"),
+            "timemodified" => strtotime("now"),
+        ));
+
+        // Self enrol 
+        $DB->insert_record('enrol', array(
+            "enrol" => "self",
+            "status" => 1,
+            "courseid" => $course->id,
+            "expirythreshold" => 86400,
+            "roleid" => 5,
+            "timecreated" => strtotime("now"),
+            "timemodified" => strtotime("now"),
+            "customint1" => 0,
+            "customint2" => 0,
+            "customint3" => 0,
+            "customint4" => 1,
+            "customint5" => 0,
+            "customint6" => 1,
+        ));
+
+        $category_context = $DB->get_record('context', array(
+            "instanceid" => $category_id,
+            "contextlevel" => 40
+        ));
+
+        $DB->insert_record('context', array(
+            "instanceid" => $course->id,
+            "contextlevel" => 50,
+            "path" => $category_context->path . "/" . $course->id,
+            "depth" => $category_context->depth + 1 
+        ));
+
+        return $course->id;
     }
 
     public function process_csv_content($content) {
@@ -178,7 +237,10 @@ class CoursesController {
 
                 // Удалить всех пользователей в категории
                 if ($delete_users_flag === "+")
-                    $this->delete_users_from_category($category);
+                    $this->delete_users_from_category($category, true);
+                // ИЛИ только учителей
+                else 
+                    $this->delete_users_from_category($category, false);
 
                 // Проверить существование определенного курса
                 $course_id = 0;
@@ -191,7 +253,7 @@ class CoursesController {
                     if ($course_by_full) $course_id = $course_by_full->id;
                 }
                 if ($course_id === 0) {
-                    $this->create_course_in_category($category_id, $course_full_name, $course_short_name);
+                    $course_id = $this->create_course_in_category($category_id, $course_full_name, $course_short_name);
                 }
 
 
@@ -201,31 +263,51 @@ class CoursesController {
                 if (!$group) 
                     throw new Exception("Группа не найдена!");
 
+                // Подписать группу
                 tool_csvcoursesattaching_controller::register_group($group->id, $category->id);
 
                 if ($teacher_login_1 !== "") {
-                    $this->attach_user_to_course($teacher_login_1, 'teacher', $course_id, 0);
+                    $teacher1 = tool_csvcoursesattaching_controller::get_user_by_info("", "", $teacher_login_1);
+                    if (!$teacher1) 
+                        echo("<p>Строка #" . $counter. "Не найден преподаватель с логином: " . $teacher_login_1 . "</p>");
+
+                    if ($teacher1) 
+                        tool_csvcoursesattaching_controller::register_teacher($teacher1->id, $course_id);
                 }
                 if ($teacher_login_2 !== "") {
-                    $this->attach_user_to_course($teacher_login_2, 'teacher', $course_id, 0);
+                    $teacher2 = tool_csvcoursesattaching_controller::get_user_by_info("", "", $teacher_login_2);
+                    if (!$teacher2) 
+                        echo("<p>Строка #" . $counter. "Не найден преподаватель с логином: " . $teacher_login_2 . "</p>");
+
+                    if ($teacher2) 
+                        tool_csvcoursesattaching_controller::register_teacher($teacher2->id, $course_id);
                 }
                 if ($teacher_login_3 !== "") {
-                    $this->attach_user_to_course($teacher_login_3, 'teacher', $course_id, 0);
+                    $teacher3 = tool_csvcoursesattaching_controller::get_user_by_info("", "", $teacher_login_3);
+                    if (!$teacher3) 
+                        echo("<p>Строка #" . $counter. "Не найден преподаватель с логином: " . $teacher_login_3 . "</p>");
+
+                    if ($teacher3) 
+                        tool_csvcoursesattaching_controller::register_teacher($teacher3->id, $course_id);
                 }
 
                 $successful++;
             } catch (Exception $e) {
                 $errors++;
-                echo("<p>" . '<strong style="color:red">Ошибка в строке</strong>: ' . $counter . " ". $e ."</p>");
+                echo("<p>" . '<strong style="color:red">Ошибка в строке</strong>: ' . $counter . "</p><p>". $e ."</p>");
             } finally {
                 // Отобразить пропаршенные данные для пользователя в любом случае
                 echo(
-                    "id cat: " . $category_id . 
-                    "; short name cat: " . $category_short_name .
-                    "; full name course: " . $course_full_name .
-                    "; short name course: " . $course_short_name .
-                    "; group name: " . $group_name .
-                    "; delete flag" . $delete_users_flag
+                    "Строка #" . $counter .
+                    "; Номер категории: " . $category_id . 
+                    "; Краткое название категории: " . $category_short_name .
+                    "; Полное название курса: " . $course_full_name .
+                    "; Краткое название курса: " . $course_short_name .
+                    "; Название группы: " . $group_name .
+                    "; Логин преп. 1: " . $teacher_login_1 .
+                    "; Логин преп. 2: " . $teacher_login_2 .
+                    "; Логин преп. 3: " . $teacher_login_3 .
+                    "; Флаг полной очистки привязок: " . $delete_users_flag
                 );
                 
             }
