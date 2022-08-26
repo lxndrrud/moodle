@@ -4,7 +4,7 @@
 require_once(__DIR__ . '../../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-require_once(__DIR__ . '/classes/courses_controller.php');
+require_once(__DIR__ . '/classes/controller.php');
 require_once(__DIR__ . '/classes/csv_upload_form.php');
 require_once(__DIR__ . '/classes/csv_processor.php');
 
@@ -13,44 +13,53 @@ $returnurl = new moodle_url('/admin/tool/csvdisciplinesattaching/index.php');
 
 $form = new csv_upload_form();
 if ($formdata = $form->get_data()) {
+    // Использование CSV-reader`а
     $importid = csv_import_reader::get_new_iid('csvdisciplinesattaching');
     $cir = new csv_import_reader($importid, 'csvdisciplinesattaching');
-    $content = $form->get_file_content('coursefile');
-    #$content = $cir -> load_csv_content($content, 'utf-8', ',');
 
-    $content = preg_replace('/\n/', ";", $content);
+    // Получение содержимого файлов
+    $use_case_1_content = $form->get_file_content('coursefile');
+    $use_case_2_content = $form->get_file_content('advanced_coursefile');
 
-    if($content) {
-        /*
-        echo($content);
-        $content = array_slice(preg_split('/;/', $content), 0, -1);
-        foreach($content as $row){
-            echo('<br>');
-            echo($row);
-            echo('<br>');
-        }
-        */
-        $controller = new CoursesController();
-        $array_info = $controller->process_csv_content($content);
+    // Небольшое форматирование контента 
+    $use_case_1_content = preg_replace('/\n/', ";", $use_case_1_content);
+    $use_case_2_content = preg_replace('/\n/', ";", $use_case_2_content);
+
+    // Инициализация контроллера
+    $controller = new CoursesController(new CoursesProvider());
+    
+
+    // Функционал 1
+    // Выбор действия + -> прикрепление; - -> открепление;
+    // Г - группа; П -> преподаватель; С - студент
+    if($use_case_1_content) {
+        $array_info = $controller->process_usecase_1($use_case_1_content);
         $message_to_show = 
             '<div style="margin-top: 40px">' .
-            '<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>' . 
-            '<h2>' . 'Ошибочных строк во время обработки:' .$array_info['errors'] .'</h2>' . 
-            '<h2>' . "Успешно обработанные строки занесены в базу данных." .'</h2>' .
-            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." .'</h2>' .
+            '<h2>' . 'Успешно обработанных строк CSV:' . $array_info['successful'] .'</h2>' . 
+            '<h2>' . 'Ошибочных строк во время обработки:' . $array_info['errors'] .'</h2>' . 
+            '<h2>' . "Успешно обработанные строки занесены в базу данных." . '</h2>' .
+            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." . '</h2>' .
             '</div>';
         echo($message_to_show);
-        
-        #echo('<h2>' . 'Успешно обработано строк CSV:' .$array_info['successful'] .'</h2>');
-        #echo('<h2>' . 'Ошибочных строк во время обаботки:' .$array_info['errors'] .'</h2>');
+
+    // Функционал 2
+    // опциональное открепление преп + студ 
+    // проверка на существование курса и его создание при его отсутствии в категории
+    // привязка студентов на все курсы в категории
+    // привязка преподавателей на указанный курс в категории
+    } else if($use_case_2_content) {
+        $array_info = $controller->process_usecase_2($use_case_2_content);
+        $message_to_show = 
+            '<div style="margin-top: 40px">' .
+            '<h2>' . 'Успешно обработанных строк CSV:' . $array_info['successful'] .'</h2>' . 
+            '<h2>' . 'Ошибочных строк во время обработки:' . $array_info['errors'] .'</h2>' . 
+            '<h2>' . "Успешно обработанные строки занесены в базу данных." . '</h2>' .
+            '<h2>' . "Нажмите 'Назад', чтоб вернуться в меню." . '</h2>' .
+            '</div>';
+        echo($message_to_show);
     }
-    /*
-    if (!$content) {
-        print_error('csvfileerror', 'tool_uploadcourse', $returnurl, $cir->get_error());
-    } else if ($readcount == 0) {
-        print_error('csvemptyfile', 'error', $returnurl, $cir->get_error());
-    }
-    */
+    
 
 } else {
     echo $OUTPUT->header();
@@ -60,14 +69,3 @@ if ($formdata = $form->get_data()) {
     die();
 }
 
-/*
-
-if (!empty($formdata)) {
-    // Get options from the first form to pass it onto the second.
-    foreach ($formdata->options as $key => $value) {
-        $data["options[$key]"] = $value;
-    }
-    #tool_registeruser_controller::process_data($csv_data);
-}
-
-*/
