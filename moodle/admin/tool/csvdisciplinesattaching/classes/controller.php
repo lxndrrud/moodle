@@ -12,6 +12,7 @@ class CoursesController {
 
     /** 
      * Process usecase 1 CSV content to attach groups/users to courses/categories
+     * Функционал 1: прикрепить/открепить студента/группу к категории, преподавателя к дисциплине 
      */
     public function process_usecase_1($content) {
         // Split CSV into rows
@@ -112,13 +113,22 @@ class CoursesController {
 
                     // Группа
                     if ($member_type == 'Г') {
-                        $group = $this->provider->get_group_by_info($group_name);
-                        if ($group && $category_id)
-                            $this->provider->unregister_group(
-                                $group -> id,
-                                $category_id
-                            );
-                        else  throw new Exception('Аргументы не найдены');
+                        // Если удаление без указания группы
+                        if (!$group_name) {
+                            if (!$category_id) throw new Exception("Категория не указана!");
+                            $category = $this->provider->get_category_by_id($category_id);
+                            if (!$category) throw new Exception("Категория не найдена!");
+                            $this->provider->delete_students_from_courses($category);
+                        // Иначе удаление с указанием группы
+                        } else {
+                            $group = $this->provider->get_group_by_info($group_name);
+                            if ($group && $category_id)
+                                $this->provider->unregister_group(
+                                    $group -> id,
+                                    $category_id
+                                );
+                            else  throw new Exception('Аргументы не найдены');
+                        }
                     }
                 }
 
@@ -154,6 +164,7 @@ class CoursesController {
 
     /** 
      * Process usecase 2
+     * Функционал 2 
      */
     public function process_usecase_2($content) {
         // Разбить CSV-файл на строки
@@ -232,14 +243,13 @@ class CoursesController {
 
                 // Найти группу по названию
                 $group = $this->provider->get_group_by_info($group_name);
-
                 if (!$group) 
                     throw new Exception("Группа не найдена!");
 
-                // Подписать группу
+                // Подписать группу на категорию дисциплин
                 $this->provider->register_group($group->id, $category->id);
 
-                // Подписать до трёъ преподавателей на дисциплину
+                // Подписать до трёх преподавателей на дисциплину
                 if ($teacher_login_1 !== "") {
                     $teacher1 = $this->provider->get_user_by_info("", "", $teacher_login_1);
                     if (!$teacher1) 
