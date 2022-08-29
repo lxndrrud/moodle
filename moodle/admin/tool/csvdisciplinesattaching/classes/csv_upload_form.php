@@ -31,12 +31,12 @@ class csv_upload_form extends tool_uploadcourse_base_form {
 
         
 
-        $mform->addElement('filepicker', 'coursefile', get_string('coursefile', 'tool_csvcoursesattaching'));
+        $mform->addElement('filepicker', 'coursefile', get_string('coursefile', 'tool_csvdisciplinesattaching'));
         //$mform->addRule('coursefile', null, 'required');
-        $mform->addElement(null, 'help-column', get_string('help-column', 'tool_csvcoursesattaching'));
-        $mform->addElement(null, 'help-row', get_string('help-row', 'tool_csvcoursesattaching'));
-        $mform->addElement(null, 'help-encoding', get_string('help-encoding', 'tool_csvcoursesattaching'));
-        $mform->addHelpButton('coursefile', 'coursefile', 'tool_csvcoursesattaching');
+        $mform->addElement(null, 'help-column', get_string('help-column', 'tool_csvdisciplinesattaching'));
+        $mform->addElement(null, 'help-row', get_string('help-row', 'tool_csvdisciplinesattaching'));
+        $mform->addElement(null, 'help-encoding', get_string('help-encoding', 'tool_csvdisciplinesattaching'));
+        $mform->addHelpButton('coursefile', 'coursefile', 'tool_csvdisciplinesattaching');
 
         $mform->addElement('filepicker', 'advanced_coursefile', get_string('advanced_coursefile', 'tool_csvdisciplinesattaching'));
         //$mform->addRule('advanced_coursefile', null, 'required');
