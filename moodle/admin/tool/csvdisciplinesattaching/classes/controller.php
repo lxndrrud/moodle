@@ -56,6 +56,8 @@ class CoursesController {
                 if ($action_type === "+") {
                     // Преподаватель
                     if ($member_type == 'П') {
+                        if (!$firstname && !$lastname && ! $username) 
+                            throw new Exception("Фамилия, имя и логин не указаны!");
                         $user = $this->provider->get_user_by_info($firstname, $lastname, $username);
                         if ($user && ($course_id != 0 || $course_id != null))
                             $this->provider->register_teacher(
@@ -67,6 +69,8 @@ class CoursesController {
 
                     // Студент
                     if ($member_type == 'С') {
+                        if (!$firstname && !$lastname && ! $username) 
+                            throw new Exception("Фамилия, имя и логин не указаны!");
                         $user = $this->provider->get_user_by_info($firstname, $lastname, $username);
                         if ($user && $category_id)
                             $this->provider->register_student(
@@ -78,6 +82,7 @@ class CoursesController {
 
                     // Группа
                     if ($member_type == 'Г') {
+                        if (!$group_name) throw new Exception("Название группы не указано!");
                         $group = $this->provider->get_group_by_info($group_name);
                         if ($group && $category_id)
                             $this->provider->register_group(
@@ -91,6 +96,8 @@ class CoursesController {
                 else if ($action_type === "-") {
                     // Преподаватель
                     if ($member_type == 'П') {
+                        if (!$firstname && !$lastname && ! $username) 
+                            throw new Exception("Фамилия, имя и логин не указаны!");
                         $user = $this->provider->get_user_by_info($firstname, $lastname, $username);
                         if ($user && ($course_id != 0 || $course_id != null))
                             $this->provider->unregister_teacher(
@@ -102,6 +109,8 @@ class CoursesController {
 
                     // Студент
                     if ($member_type == 'С') {
+                        if (!$firstname && !$lastname && ! $username) 
+                            throw new Exception("Фамилия, имя и логин не указаны!");
                         $user = $this->provider->get_user_by_info($firstname, $lastname, $username);
                         if ($user && $category_id)
                             $this->provider->unregister_student(
@@ -237,7 +246,7 @@ class CoursesController {
                     if ($course_by_full) $course_id = $course_by_full->id;
                 }
                 if ($course_id === 0) {
-                    $course_id = $this->provider->create_course_in_category($category_id, $course_full_name, $course_short_name);
+                    $course_id = $this->provider->create_course_in_category($category->id, $course_full_name, $course_short_name);
                 }
 
 

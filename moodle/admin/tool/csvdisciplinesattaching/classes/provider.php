@@ -217,7 +217,7 @@ class CoursesProvider {
         // courses for category
         $courses = $DB->get_records('course', array('category' => $category_id));
         // context for category
-        $context = $DB->get_record('context', array(
+        $category_context = $DB->get_record('context', array(
             'instanceid' => $category->id, 
             'contextlevel' => 40
         ));
@@ -226,7 +226,7 @@ class CoursesProvider {
         $role_assignment_check = $DB->get_record('role_assignments', array(
             'roleid' => $roleid,
             'userid' => $user_id,
-            'contextid' => $context->id
+            'contextid' => $category_context->id
         ));
 
         // Check existing role assignment row to update or to insert if it doesn`t exist
@@ -234,7 +234,7 @@ class CoursesProvider {
             $DB->insert_record('role_assignments', array(
                 'roleid' => $roleid, 
                 'userid' => $user_id,
-                'contextid' => $context->id,
+                'contextid' => $category_context->id,
                 'timemodified' => time(),
                 // admin user
                 'modifierid' => 2
@@ -400,22 +400,24 @@ class CoursesProvider {
             'contextid' => $category_context->id,
         ));
 
-        /*
-        TODO: доделать для курсов
+
         // Получить дисциплины на категорию
         $courses = $this->get_courses_by_category($category_id);
 
+        // Получить возможные привязки студентов на дисциплины
         foreach($courses as $course) {
             // Контекст дисциплины
-            $category_context = $DB->get_record('context', array(
+            $course_context = $DB->get_record('context', array(
                 'instanceid' => $course->id, 
                 'contextlevel' => 50
             ));
+            $role_assignments_students_course = $DB->get_records('role_assignments', array(
+                'roleid' => $this->normalize_role('student'),
+                'contextid' => $course_context->id,
+            ));
+
+            $role_assignments_students = array_merge($role_assignments_students, $role_assignments_students_course);
         }
-        */
-
-
-
         return $role_assignments_students;
     }
 
@@ -539,11 +541,20 @@ class CoursesProvider {
             "contextlevel" => 40
         ));
 
-        $DB->insert_record('context', array(
+        $last_context = $DB->get_record_sql('SELECT * FROM {context} ORDER BY id DESC LIMIT 1');
+
+
+        $contextid = $DB->insert_record('context', array(
+            "id" => $last_context->id + 1,
             "instanceid" => $course->id,
             "contextlevel" => 50,
-            "path" => $category_context->path . "/" . $course->id,
+            "path" => $category_context->path . "/",
             "depth" => $category_context->depth + 1 
+        ));
+
+        $DB->update_record('context', array(
+            'id' => $contextid,
+            'path' => $category_context->path . "/" . $contextid
         ));
 
         return $course->id;
