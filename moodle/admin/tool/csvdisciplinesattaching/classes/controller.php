@@ -282,17 +282,19 @@ class CoursesController {
             } finally {
                 // Отобразить пропаршенные данные для пользователя в любом случае
                 echo(
-                    "Строка #" . $counter .
-                    "; Номер категории: " . $category_id . 
-                    "; Краткое название категории: " . $category_short_name .
-                    "; Полное название курса: " . $course_full_name .
-                    "; Краткое название курса: " . $course_short_name .
-                    "; Название группы: " . $group_name .
-                    "; Логин преп. 1: " . $teacher_login_1 .
-                    "; Логин преп. 2: " . $teacher_login_2 .
-                    "; Логин преп. 3: " . $teacher_login_3 .
-                    "; Флаг удаления студентов: " . $delete_students_flag .
-                    "; Флаг удаления преподавателей: " . $delete_teachers_flag
+                    "<p>" .
+                        "Строка #" . $counter .
+                        "; Номер категории: " . $category_id . 
+                        "; Краткое название категории: " . $category_short_name .
+                        "; Полное название курса: " . $course_full_name .
+                        "; Краткое название курса: " . $course_short_name .
+                        "; Название группы: " . $group_name .
+                        "; Логин преп. 1: " . $teacher_login_1 .
+                        "; Логин преп. 2: " . $teacher_login_2 .
+                        "; Логин преп. 3: " . $teacher_login_3 .
+                        "; Флаг удаления студентов: " . $delete_students_flag .
+                        "; Флаг удаления преподавателей: " . $delete_teachers_flag .
+                    "</p>"
                 );
                 
             }

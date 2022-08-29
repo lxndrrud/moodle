@@ -289,27 +289,40 @@ class CoursesProvider {
         // courses for category
         $courses = $DB->get_records('course', array('category' => $category_id));
         // context for category
-        $context = $DB->get_record('context', array(
+        $category_context = $DB->get_record('context', array(
             'instanceid' => $category->id, 
             'contextlevel' => 40
         ));
         
-        $role_assignment_check = $DB->get_record('role_assignments', array(
+        $category_role_assignment_check = $DB->get_record('role_assignments', array(
             'roleid' => $roleid,
             'userid' => $user_id,
-            'contextid' => $context->id
+            'contextid' => $category_context->id
         ));
         
         // Check existing role assignment row to update or to insert if it doesn`t exist
-        if($role_assignment_check != null) {
+        if($category_role_assignment_check != null) {
             $DB->delete_records('role_assignments', array(
-                'id' => $role_assignment_check->id,
+                'id' => $category_role_assignment_check->id,
             ));
             foreach($courses as $course) {
                 $enrol = $DB->get_record('enrol', array(
                     'enrol' => 'manual',
                     'courseid' => $course->id
                 ));
+                $course_context = $DB->get_record('context', array(
+                    'instanceid' => $course->id, 
+                    'contextlevel' => 50
+                ));
+                $course_role_assignment_check = $DB->get_record('role_assignments', array(
+                    'roleid' => $roleid,
+                    'userid' => $user_id,
+                    'contextid' => $course_context->id
+                ));
+                if ($course_role_assignment_check) 
+                    $DB->delete_records('role_assignments', array(
+                        'id' => $course_role_assignment_check->id,
+                    ));
                 $DB->delete_records('user_enrolments', array(
                     'enrolid' => $enrol->id,
                     'userid' => $user_id,
@@ -387,6 +400,22 @@ class CoursesProvider {
             'contextid' => $category_context->id,
         ));
 
+        /*
+        TODO: доделать для курсов
+        // Получить дисциплины на категорию
+        $courses = $this->get_courses_by_category($category_id);
+
+        foreach($courses as $course) {
+            // Контекст дисциплины
+            $category_context = $DB->get_record('context', array(
+                'instanceid' => $course->id, 
+                'contextlevel' => 50
+            ));
+        }
+        */
+
+
+
         return $role_assignments_students;
     }
 
@@ -409,6 +438,7 @@ class CoursesProvider {
                     'enrol' => 'manual',
                     'courseid' => $course->id
                 ));
+                
                 $DB->delete_records('user_enrolments', array(
                     'enrolid' => $enrol->id,
                     'userid' => $student_assignment->userid,
